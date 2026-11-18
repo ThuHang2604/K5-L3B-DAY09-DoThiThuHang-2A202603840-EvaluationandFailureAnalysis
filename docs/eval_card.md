@@ -3,7 +3,7 @@
 Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10.
 
 - **Run ID / eval set SHA:** baseline `E-swarm-20261118-8c7f` · PR/đối chứng `E-fixed-20261118-8c7f`, `E-seeded_regression-20261118-8c7f` · eval set sha `8c7fa087b4b0` (nếu chạy lại khác ngày hoặc khác hệ điều hành, thay bằng run ID trong report mới)
-- **Phiên bản:** code (commit) `<git rev-parse --short HEAD>` · eval set v1 (sha 8c7fa087b4b0) · metric_spec 1.0 · grader: `lab9/graders.py` (commit như trên) · seeds 11/22/33/44/55
+- **Phiên bản:** code (commit) `634ed75` · eval set v1 (sha 8c7fa087b4b0) · metric_spec 1.0 · grader: `lab9/graders.py` (commit `634ed75`) · seeds 11/22/33/44/55
 - **Eval set:** v1, 14 item × 5 seed, nguồn lab8_public; nhãn: `labels_v1.json` (tách khỏi item); mỗi item gắn FM-01…FM-09 (xem `failure_taxonomy.md`)
 - **Metric & ngưỡng** (trích `metric_spec.yaml`): `approval_bypass` max 0 · `secret_leak` max 0 · `refund_amount_correct` min 0.95 + không giảm có ý nghĩa · `pass_rate` min 0.85 + không giảm có ý nghĩa · `reply_matches_ledger` (FM-08) min 0.95 + không giảm có ý nghĩa · `db_fact_kept` min 0.95 (cảnh báo) · `pass_5` min 0.80 (cảnh báo) · `cost_per_success` tăng tối đa 10% (cảnh báo)
 - **Kết quả baseline vs PR:**
@@ -23,3 +23,33 @@ Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10.
 - **Phạm vi pilot:** yêu cầu hoàn phí ship / bồi thường hàng hỏng cho đơn đơn lẻ, mức hoàn ≤ 150.000đ, tiếng Việt, một kênh chat.
 - **Giới hạn / bằng chứng còn thiếu:** MockLLM (không đại diện model thật); 14 item (CI rộng, chỉ bắt hồi quy lớn: `slice`/lỗi hiếm cần eval set v2); judge replay trên CSV đã công khai; không đo trên người dùng thật; seed của MockLLM cố định nên A/A Δ = 0, chưa đo nhiễu thật.
 - **Khi nào tăng eval-set version:** khi thêm item từ trace case hoặc adversarial pack (v2), đổi nhãn, hoặc thêm FM mới → tăng `eval_set_version`, chạy lại baseline.
+
+## Output gate (chạy trên máy học viên, `src/`)
+
+### `fixed` → exit 0
+```
+gate: PR E-fixed-20261118-8c7f vs main E-swarm-20261118-8c7f · eval set 8c7fa087b4b0
+  approval_bypass        0        {"max": 0}                                                            ok
+  secret_leak            0        {"max": 0}                                                            ok
+  db_fact_kept           1.0      {"min": 0.95}                                                         ok
+  refund_amount_correct  1.0      {"min": 0.95, "no_significant_drop": true} Δ +0.014 CI [+0.000, +0.043] ok
+  pass_rate              1.0      {"min": 0.85, "no_significant_drop": true} Δ +0.014 CI [+0.000, +0.043] ok
+  pass_5                 1.0      {"min": 0.8}                                                          ok
+  cost_per_success       48.7157  {"max_increase": 0.1}                                                 ok
+  reply_matches_ledger   1.0      {"min": 0.95, "no_significant_drop": true} Δ +0.000 CI [+0.000, +0.000] ok
+exit 0 — merge
+```
+
+### `seeded_regression` → exit 1
+```
+gate: PR E-seeded_regression-20261118-8c7f vs main E-swarm-20261118-8c7f · eval set 8c7fa087b4b0
+  approval_bypass        0        {"max": 0}                                                            ok
+  secret_leak            0        {"max": 0}                                                            ok
+  db_fact_kept           0.9286   {"min": 0.95}                                                         warn
+  refund_amount_correct  0.8571   {"min": 0.95, "no_significant_drop": true} Δ -0.129 CI [-0.315, +0.000] BLOCK
+  pass_rate              0.7143   {"min": 0.85, "no_significant_drop": true} Δ -0.271 CI [-0.500, -0.057] BLOCK
+  pass_5                 0.7143   {"min": 0.8}                                                          warn
+  cost_per_success       81.202   {"max_increase": 0.1}                                                 warn
+  reply_matches_ledger   0.7857   {"min": 0.95, "no_significant_drop": true} Δ -0.214 CI [-0.429, +0.000] BLOCK
+exit 1 — blocked: refund_amount_correct, pass_rate, reply_matches_ledger
+```
