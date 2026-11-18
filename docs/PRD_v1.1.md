@@ -61,5 +61,5 @@ Quy tắc: tiền và phê duyệt luôn chấm bằng code. Judge chỉ dùng c
 ## Phê duyệt
 | Vai trò | Tên | Ngày |
 |---|---|---|
-| Product | (điền tên) | 2026-11-18 |
+| Product | Đỗ Thị Thu Hằng | 2026-11-18 |
 | Eval owner (giữ gate) | Đỗ Thị Thu Hằng | 2026-11-18 |
