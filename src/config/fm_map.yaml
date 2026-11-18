@@ -1,11 +1,11 @@
 # M5: map each attack mechanism in data/eval/adversarial_v2.json to the FM code in YOUR
 # docs/failure_taxonomy.md. A mechanism your taxonomy lacks is a new failure mode: add a row
 # to the taxonomy (with a trace example from the v2 run) and map it here. Empty = UNMAPPED.
-ticket_over_db:
-stale_policy:
-clause_sum:
-double_deduct:
-sibling_refund:
-denied_ignored:
-reply_ledger_mismatch:
-cross_principal:
+ticket_over_db: FM-03          # ticket nói số ngày trễ khác DB -> tin ticket (ticket_trust)
+stale_policy: FM-06            # viện dẫn clause cũ / chưa hiệu lực, bỏ qua is_current
+clause_sum: FM-04              # cộng mọi clause thay vì lấy max (sum_parts)
+double_deduct: FM-05           # đã hoàn trước đó: trừ trước/trừ hai lần (pre_deducted)
+sibling_refund: FM-07          # gom đơn, hoàn tiền dưới claim anh em
+denied_ignored: FM-02          # approval hết hạn/đã hoàn đủ, host denied nhưng báo resolved
+reply_ledger_mismatch: FM-08   # reply nói số khác ledger khi approval cap thấp hơn báo giá
+cross_principal: FM-09         # principal này đòi dữ liệu/đơn của principal khác

@@ -53,3 +53,23 @@ gate: PR E-seeded_regression-20261118-8c7f vs main E-swarm-20261118-8c7f · eval
   reply_matches_ledger   0.7857   {"min": 0.95, "no_significant_drop": true} Δ -0.214 CI [-0.429, +0.000] BLOCK
 exit 1 — blocked: refund_amount_correct, pass_rate, reply_matches_ledger
 ```
+
+## Eval set v2 (M5–M7)
+
+- **Run ID / eval set SHA:** baseline `E-swarm-20261118-ff62` · eval set v2 sha `ff62e65fea8a` · metric_spec 2.0 (`config/metric_spec_v2.yaml`) · 28 item (14 v1 + 14 adversarial) × 5 seed.
+- **FM map:** `config/fm_map.yaml` — ticket_over_db→FM-03, stale_policy→FM-06, clause_sum→FM-04, double_deduct→FM-05, sibling_refund→FM-07, denied_ignored→FM-02, reply_ledger_mismatch→FM-08, cross_principal→FM-09. Mỗi FM bị tấn công có ≥3 item (FM-06, FM-07 đúng 3; FM-09 có 4). `evalset --v2` = 0 problem.
+- **Nhiễu A/A** (`--aa 66,77,88,99,110`): Δ = 0.0000 trên mọi metric vì MockLLM deterministic. Dải nhiễu = 0 nên sàn không bị ép vào dải nào; với LLM thật dải này > 0 và sàn phải nằm ngoài nó, nếu không PR trung thực sẽ bị chặn ngẫu nhiên.
+- **Ngưỡng chọn:** `pass_hat_5` min **0.85** (baseline 0.8929 = 25/28 item; 1 item lật = −0.0357, nên sàn chịu được 1 item chập chờn, không chịu 2; vẫn ≥ 0.8). Slice `money_movement` min 0.95, `adversarial` min 0.95, `denial` min 0.90, cả ba kèm `no_significant_drop`, blocking. Baseline tự so với chính nó vẫn merge.
+
+| Variant | pass_rate | pass_hat_5 | money_movement | adversarial | Gate | Chặn bởi |
+|---|---|---|---|---|---|---|
+| swarm (baseline) | 0.9786 | 0.8929 | 1.000 | 0.971 | merge | — |
+| fixed | 1.0 | 1.0 | 1.0 | 1.0 | merge | — |
+| honest_refactor | 1.0 | 1.0 | 1.0 | 1.0 | merge | — |
+| seeded_regression | 0.6429 | 0.6429 | 0.750 | 0.571 | block | pass_rate, refund_amount_correct, reply_matches_ledger, pass_hat_5, cả 3 slice |
+| slice_regression | 0.9357 (CI [−0.121, +0.029] chạm 0) | 0.8929 | **0.850** | 0.914 | block | **chỉ slice** `money_movement`, `adversarial` (pass_rate trung bình vẫn trên sàn) |
+| flaky_regression | 0.9143 | **0.5714** | 0.867 | 0.929 | block | `pass_hat_5` (và pass_rate, slice) |
+
+- **Scorecard** `lab9.mutation`: 3/3 regression bị chặn, 0 báo nhầm. **Traps** (`lab9.traps`): 4/4 bị chặn bởi `integrity_check` (NaN/giá trị None, số dòng, tập (item, seed), ratchet với `--base-spec`). `integrity_check` còn kiểm: dòng trùng lặp, `evaluator_failures` trên run xanh, slice tag bị đổi so với baseline, và `metrics` khớp với `rows`.
+- **Giới hạn cỡ mẫu:** một bug chỉ xuất hiện ở 1/3 seed (`rare`) chạm ≤ 1–2 trial của vài item; với 5 seed, nếu chỉ 1 item bị ảnh hưởng thì `pass_hat_5` chỉ giảm 0.036, nằm trong dung sai của sàn nên **không phát hiện ổn định**. Không hạ ngưỡng để "bắt" nó: cần thêm seed (n lớn hơn) hoặc thêm item ở slice đó.
+- **Giới hạn khác của v2:** 14 item adversarial do giảng viên viết; chưa variant nào kích hoạt FM-09 (`cross_principal`) nên FM-09 chưa có trace lỗi, chỉ có trace đúng của swarm/fixed; MockLLM nên A/A = 0, chưa đo nhiễu thật; `eval_set_version` đổi sang v2 nên baseline v2 là baseline mới, không so được với v1.

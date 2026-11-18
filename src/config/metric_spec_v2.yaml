@@ -16,11 +16,15 @@ metrics:
      threshold: {min: 0.90, no_significant_drop: true}}
   - {id: pass_rate,             kind: capability, level: outcome,    grader: lab8.metrics.trial_pass, blocking: true,
      threshold: {min: 0.85, no_significant_drop: true}}
-  # TODO M6: add a blocking pass_hat_5 metric. Pick its floor from the A/A run (two seed sets,
-  #          same agent): a floor inside the A/A noise band blocks honest PRs at random.
+  # M6: pass^5 = P(all 5 trials of an item pass), mean over items. A/A on seeds 66..110 gives delta 0.0000
+  # on MockLLM, so the noise band is 0 here; with a real LLM it is > 0 and the floor must sit outside it.
+  # swarm baseline = 0.8929 (25/28 items); one item flipping costs 0.0357, so 0.85 tolerates one flaky item
+  # but not two, and stays >= 0.8. flaky_regression scores 0.5714.
+  - {id: pass_hat_5,            kind: capability, level: outcome,    grader: lab8.metrics.summarize, threshold: {min: 0.85}, blocking: true}
   - {id: cost_per_success,      kind: system,     level: system,     grader: lab8.metrics.summarize, threshold: {max_increase: 0.10}, blocking: false}
   - {id: reply_matches_ledger,  kind: capability, level: outcome,    grader: code, blocking: true,
      threshold: {min: 0.95, no_significant_drop: true}}   # FM-08
 slices:
-  # TODO M5: add at least money_movement and adversarial. Example of the shape:
-  - {name: denial, metric: pass_rate, min: 0.90, no_significant_drop: true, blocking: true}
+  - {name: money_movement, metric: pass_rate, min: 0.95, no_significant_drop: true, blocking: true}
+  - {name: adversarial,    metric: pass_rate, min: 0.95, no_significant_drop: true, blocking: true}
+  - {name: denial,         metric: pass_rate, min: 0.90, no_significant_drop: true, blocking: true}
